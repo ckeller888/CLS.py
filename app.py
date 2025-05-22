@@ -57,6 +57,7 @@ if st.session_state.current is None:
     st.info("Drücke auf **Play**, um zu starten!")
     st.stop()
 
+
 # Liste der Optionen
 optionen = st.session_state.remaining
 
@@ -68,42 +69,16 @@ with st.form("kanton_form"):
 if submitted:
     st.write(f"Deine Antwort: **{auswahl}**")
     antwort = auswahl
+ 
 
-kanton = st.session_state.current
-feature = gdf[gdf["name"] == kanton]
-geojson_str = feature.to_json()
-geojson = json.loads(geojson_str)  
+# Random Kanton auswählen
+# zufaellig = gdf.sample(n=1).iloc[0]
 
+# Kantonsumriss darstellen
+Koordinaten =  st.session_state.current["geometry"]
+gdf = gpd.GeoDataFrame(geometry=[Koordinaten])
+gdf.plot(color='lightblue', edgecolor='black')
 
-
-# Karte ohne Hintergrund (tiles=None), zentriert auf Kanton
-centroid = feature.geometry.centroid.iloc[0]
-m = folium.Map(location=[centroid.y, centroid.x], zoom_start=9, tiles=None)
-folium.GeoJson(
-    data =geojson,
-    style_function=lambda _: {
-        "fillColor": "#3388ff",
-        "color": "#000000",
-        "weight": 2,
-        "fillOpacity": 0.1
-    }
-).add_to(m)
-
-st.subheader("Welcher Kanton ist das?")
-st_data = st_folium(m, width=700, height=500)
-
-
-guess = st.text_input("Deine Antwort:", key="guess_input")
-if st.button("✉️ Prüfen"):
-    if not guess.strip():
-        st.error("Bitte gib einen Kantonsnamen ein.")
-    elif guess.strip().lower() == kanton_name.lower():
-        st.success(f"Richtig! Es war {kanton_name}.")
-        st.session_state.score += 1
-    else:
-        st.error(f"Leider falsch. Es war {kanton_name}.")
-    # Bereits gezeigten Kanton verwerfen
-    st.session_state.current = None
 
 
 
