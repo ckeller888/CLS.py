@@ -1,8 +1,14 @@
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
-# import fiona
+import geopandas as gpd
+import fiona
 # import PyQt5
+
+filename = "geodata/swissBOUNDARIES3D_1_5_LV95_LN02.gpkg"
+layer_name = "tlm_kantonsgebiet"
+
+gdf = gpd.read_file(filename, layer=layer_name)
 
 # Streamlit-Konfiguration
 st.set_page_config(page_title="Spiel", layout="wide")
@@ -12,12 +18,36 @@ st.title("Kantonsumrisse erkennen Schweiz")
 if st.button("Play"):
     st.write("geklickt!")
 
+    # Beispieloptionen
+namen_liste = []
+
+with fiona.open(filename, layer=layer_name) as src:
+    for feature in src:
+        # Prüfen, ob "Namen" in den Attributen vorhanden ist
+        name = feature["properties"].get("Namen")
+        if name:
+            namen_liste.append(name)
+
+# Duplikate entfernen und sortieren
+namen_liste = sorted(set(namen_liste))
+
+# Textfeld mit Filterfunktion
+eingabe = st.text_input("Kantonsname:")
+
+if eingabe:
+    vorschlaege = [n for n in namen_liste if eingabe.lower() in n.lower()]
+    if vorschlaege:
+        auswahl = st.selectbox("Vorschläge:", vorschlaege)
+        st.write(f"Du hast ausgewählt: {auswahl}")
+    else:
+        st.write("Keine passenden Namen gefunden.")
+
 # Punktestand initialisieren
 if "points" not in st.session_state:
     st.session_state.points = 0
 
 # Startposition auf die Schweiz setzen
-swiss_center = [46.8182, 8.2275]  # Geografisches Zentrum der Schweiz
+swiss_center = [46.8182, 8.2275]
 m = folium.Map(location=swiss_center, zoom_start=8)
 
 # Spielpunkte: Städte in der Schweiz
