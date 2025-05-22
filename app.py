@@ -1,93 +1,83 @@
 import streamlit as st
-import folium
-from streamlit_folium import st_folium
 import geopandas as gpd
 import fiona
 import random
 import matplotlib.pyplot as plt
+from shapely.affinity import translate
+
+# Streamlit-Konfiguration
+st.set_page_config(page_title="Kantons-Spiel", layout="wide")
+st.title("🇨🇭 Kantonsumrisse erkennen – Schweiz")
 
 # Daten laden
 filename = "geodata/swissBOUNDARIES3D_1_5_LV95_LN02.gpkg"
-layer_name = "tlm_kantonsgebiet"
-gdf = gpd.read_file(filename, layer=layer_name).to_crs(epsg=2056)
+layer_kanton = "tlm_kantonsgebiet"
+layer_land = "tlm_landesgebiet"
 
-layer_name_Land = "tlm_landesgebiet"
-Land = gpd.read_file(filename, layer=layer_name_Land).to_crs(epsg=2056)
-Auswahl= Land.query("name == 'Schweiz'").iloc[0]
+gdf = gpd.read_file(filename, layer=layer_kanton).to_crs(epsg=2056)
+land = gpd.read_file(filename, layer=layer_land).to_crs(epsg=2056)
+schweiz_geom = land[land["name"] == "Schweiz"].geometry.iloc[0]
 
-# Namen extrahieren
-namen_liste = []
-with fiona.open(filename, layer=layer_name) as src:
-    for feature in src:
-        name = feature["properties"].get("name")
-        if name:
-            namen_liste.append(name)
-namen_liste = sorted(set(namen_liste))
+namen_liste = sorted({f["properties"]["name"] for f in fiona.open(filename, layer=layer_kanton)})
 
-# Streamlit-Konfiguration
-st.set_page_config(page_title="Spiel", layout="wide")
-st.title("Kantonsumrisse erkennen Schweiz")
-
-# Session-State-Variablen
-if "remaining" not in st.session_state:
-    st.session_state.remaining = []
-if "score" not in st.session_state:
-    st.session_state.score = 0
-if "current" not in st.session_state:
-    st.session_state.current = None
-if "feedback" not in st.session_state:
-    st.session_state.feedback = ""
-if "feedback_color" not in st.session_state:
-    st.session_state.feedback_color = "success"
-if "spiel_gestartet" not in st.session_state:
-    st.session_state.spiel_gestartet = False
+# Session-State initialisieren
+for key, default in {
+    "remaining": [],
+    "score": 0,
+    "current": None,
+    "feedback": "",
+    "feedback_color": "success",
+    "spiel_gestartet": False,
+    "antwort_gegeben": False,
+    "auswahl": None,
+}.items():
+    if key not in st.session_state:
+        st.session_state[key] = default
 
 # Spiel starten oder neu starten
-start_button_label = "🔄 Neu starten" if st.session_state.spiel_gestartet else "▶️ Spiel starten"
-if st.button(start_button_label):
+start_label = "🔄 Neu starten" if st.session_state.spiel_gestartet else "▶️ Spiel starten"
+if st.button(start_label):
     st.session_state.remaining = namen_liste.copy()
     st.session_state.score = 0
     st.session_state.spiel_gestartet = True
     st.session_state.feedback = ""
-    st.session_state.feedback_color = "success"
+    st.session_state.antwort_gegeben = False
     st.session_state.current = random.choice(st.session_state.remaining)
     st.session_state.remaining.remove(st.session_state.current)
-    
-
 
 if not st.session_state.spiel_gestartet:
     st.info("Drücke **Spiel starten**, um zu beginnen.")
     st.stop()
 
-# Nur anzeigen, wenn ein Kanton aktiv ist
-if st.session_state.current:
-    # Kanton anzeigen
-    zufaellig = gdf[gdf["name"] == st.session_state.current].iloc[0]
-    Koordinaten = zufaellig.geometry
-    Kanton_plot = gpd.GeoDataFrame(geometry=[Koordinaten])
-    col1, col2, col3 = st.columns([1, 4, 1])  # Zentrierung
+# Wenn noch keine Antwort gegeben wurde, zeige Kanton und Formular
+if not st.session_state.antwort_gegeben and st.session_state.current:
+    kanton_geom = gdf[gdf["name"] == st.session_state.current].geometry.iloc[0]
+    bounds = kanton_geom.bounds
+    center_x = (bounds[0] + bounds[2]) / 2
+    center_y = (bounds[1] + bounds[3]) / 2
+    zentriert = translate(kanton_geom, xoff=-center_x, yoff=-center_y)
+    gdf_kanton = gpd.GeoDataFrame(geometry=[zentriert])
 
+    col1, col2, col3 = st.columns([1, 4, 1])
     with col2:
-        fig, ax = plt.subplots(figsize=(4, 4), dpi=100)  # 4 Zoll * 100 DPI = 400 px
-        Kanton_plot.plot(ax=ax, color='lightblue', edgecolor='black')
+        fig, ax = plt.subplots(figsize=(8, 8), dpi=100)
+        gdf_kanton.plot(ax=ax, color='lightblue', edgecolor='black')
+        ax.set_xlim(-100000, 100000)
+        ax.set_ylim(-100000, 100000)
+        ax.set_aspect('equal')
         ax.axis('off')
         st.pyplot(fig)
 
-    # Auswahlformular
     with st.form("antwort_form"):
         auswahl = st.selectbox("Welcher Kanton ist das?", namen_liste)
         prüfen = st.form_submit_button("✅ Bestätigen")
 
     if prüfen:
-        # Kantone in Schweizer Karte anzeigen
-        Koordinaten = Auswahl["geometry"]
-        Schweiz = gpd.GeoDataFrame(geometry=[Koordinaten])
-        ax = Schweiz.plot(color='white', edgecolor='black')
-        Kanton_plot.plot(ax=ax, color='orange', edgecolor='red', alpha=0.7)
-        fig2 = ax.get_figure()
-        st.pyplot(fig2)
+        st.session_state.antwort_gegeben = True
+        st.session_state.auswahl = auswahl
+        korrekt = auswahl == st.session_state.current
 
-        if auswahl == st.session_state.current:
+        if korrekt:
             st.session_state.score += 1
             st.session_state.feedback = f"✅ Richtig! Das war **{st.session_state.current}**."
             st.session_state.feedback_color = "success"
@@ -95,23 +85,33 @@ if st.session_state.current:
             st.session_state.feedback = f"❌ Falsch! Das war **{st.session_state.current}**."
             st.session_state.feedback_color = "error"
 
-        # Nächsten Kanton vorbereiten
-        if st.session_state.remaining:
-            st.session_state.current = random.choice(st.session_state.remaining)
-            st.session_state.remaining.remove(st.session_state.current)
-        else:
-            st.session_state.feedback += " 🎉 Alle Kantone waren dran. Spiel beendet!"
-            st.session_state.spiel_gestartet = False
-            st.session_state.current = None
+# Wenn Antwort gegeben wurde: zeige Schweizkarte mit farbigen Flächen
+if st.session_state.antwort_gegeben:
+    fig2, ax2 = plt.subplots(figsize=(6, 6), dpi=100)
+    gpd.GeoDataFrame(geometry=[schweiz_geom]).plot(ax=ax2, color='white', edgecolor='black')
 
-# Rückmeldung
-if st.session_state.feedback:
+    if st.session_state.auswahl and st.session_state.auswahl != st.session_state.current:
+        gdf[gdf["name"] == st.session_state.auswahl].plot(ax=ax2, color='red', edgecolor='black', alpha=0.5)
+
+    gdf[gdf["name"] == st.session_state.current].plot(ax=ax2, color='green', edgecolor='black', alpha=0.7)
+
+    ax2.axis('off')
+    st.pyplot(fig2)
+
     if st.session_state.feedback_color == "success":
         st.success(st.session_state.feedback)
     else:
         st.error(st.session_state.feedback)
 
-# Sidebar
-st.sidebar.header("📊 Statistik")
-st.sidebar.write(f"Punktestand: **{st.session_state.score}**")
-st.sidebar.write(f"Verbleibende Kantone: **{len(st.session_state.remaining)}**")
+    if st.button("⏭️ Weiter"):
+        st.session_state.antwort_gegeben = False
+        st.session_state.feedback = ""
+        st.session_state.auswahl = None
+
+        if st.session_state.remaining:
+            st.session_state.current = random.choice(st.session_state.remaining)
+            st.session_state.remaining.remove(st.session_state.current)
+        else:
+            st.session_state.current = None
+            st.session_state.spiel_gestartet = False
+            st.success("🎉 Alle Kantone waren dran. Spiel beendet!")
