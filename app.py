@@ -65,20 +65,15 @@ if not st.session_state.spiel_gestartet:
 if not st.session_state.antwort_gegeben and st.session_state.current:
     kanton_geom = gdf[gdf["name"] == st.session_state.current].geometry.iloc[0]
     bounds = kanton_geom.bounds
-    center_x = (bounds[0] + bounds[2]) / 2
-    center_y = (bounds[1] + bounds[3]) / 2
-    zentriert = translate(kanton_geom, xoff=-center_x, yoff=-center_y)
-    gdf_kanton = gpd.GeoDataFrame(geometry=[zentriert])
+    gdf_kanton = gpd.GeoDataFrame(geometry=[kanton_geom])
 
-    col1, col2, col3 = st.columns([1, 4, 1])
+    col1, col2, col3 = st.columns([1, 0.8, 1])
     with col2:
-        fig, ax = plt.subplots(figsize=(8, 8), dpi=100)
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=600)
         gdf_kanton.plot(ax=ax, color='lightblue', edgecolor='black')
-        ax.set_xlim(-100000, 100000)
-        ax.set_ylim(-100000, 100000)
-        ax.set_aspect('equal')
         ax.axis('off')
         st.pyplot(fig)
+
 
     with st.form("antwort_form"):
         auswahl = st.selectbox("Welcher Kanton ist das?", namen_liste)
@@ -101,19 +96,21 @@ if not st.session_state.antwort_gegeben and st.session_state.current:
 
 # Nach Antwort: Schweizkarte mit Verlauf zeigen
 if st.session_state.antwort_gegeben:
-    fig2, ax2 = plt.subplots(figsize=(6, 6), dpi=100)
-    gpd.GeoDataFrame(geometry=[schweiz_geom]).plot(ax=ax2, color='white', edgecolor='black')
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        fig2, ax2 = plt.subplots(figsize=(8, 8), dpi=600)
+        gpd.GeoDataFrame(geometry=[schweiz_geom]).plot(ax=ax2, color='white', edgecolor='black')
 
-    # Falsche Kantone rot
-    if st.session_state.falsch_gewählt:
-        gdf[gdf["name"].isin(st.session_state.falsch_gewählt)].plot(ax=ax2, color='red', edgecolor='black', alpha=0.5)
+        # Falsche Kantone rot
+        if st.session_state.falsch_gewählt:
+            gdf[gdf["name"].isin(st.session_state.falsch_gewählt)].plot(ax=ax2, color='red', edgecolor='black', alpha=0.5)
 
-    # Richtige Kantone grün
-    if st.session_state.richtig_gewählt:
-        gdf[gdf["name"].isin(st.session_state.richtig_gewählt)].plot(ax=ax2, color='green', edgecolor='black', alpha=0.6)
+        # Richtige Kantone grün
+        if st.session_state.richtig_gewählt:
+            gdf[gdf["name"].isin(st.session_state.richtig_gewählt)].plot(ax=ax2, color='green', edgecolor='black', alpha=0.5)
 
-    ax2.axis('off')
-    st.pyplot(fig2)
+        ax2.axis('off')
+        st.pyplot(fig2)
 
     if st.session_state.feedback_color == "success":
         st.success(st.session_state.feedback)
