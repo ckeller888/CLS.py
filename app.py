@@ -24,7 +24,7 @@ namen_liste = []
 with fiona.open(filename, layer=layer_name) as src:
     for feature in src:
         # Prüfen, ob "Namen" in den Attributen vorhanden ist
-        name = feature["properties"].get("Namen")
+        name = feature["properties"].get("name")
         if name:
             namen_liste.append(name)
 
@@ -32,15 +32,18 @@ with fiona.open(filename, layer=layer_name) as src:
 namen_liste = sorted(set(namen_liste))
 
 # Textfeld mit Filterfunktion
-eingabe = st.text_input("Kantonsname:")
+#eingabe = st.text_input("Kantonsname:")
 
-if eingabe:
-    vorschlaege = [n for n in namen_liste if n.lower().startswith(eingabe.lower())]
-    if vorschlaege:
-        auswahl = st.selectbox("Vorschläge:", vorschlaege)
-        st.write(f"Du hast ausgewählt: {auswahl}")
-    else:
-        st.write("Keine passenden Namen gefunden.")
+# Liste der Optionen
+optionen = namen_liste
+
+# Dropdown
+auswahl = st.selectbox("Wähle einen Kanton:", optionen)
+
+# Button zum Bestätigen
+if st.button("Bestätigen"):
+    st.write(f"Du hast bestätigt: **{auswahl}**")
+
 
 # Punktestand initialisieren
 if "points" not in st.session_state:
