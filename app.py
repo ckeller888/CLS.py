@@ -5,20 +5,17 @@ import geopandas as gpd
 import fiona
 import random
 import json
-# import PyQt5
+
 
 filename = "geodata/swissBOUNDARIES3D_1_5_LV95_LN02.gpkg"
 layer_name = "tlm_kantonsgebiet"
 
-gdf = gpd.read_file(filename, layer=layer_name)
+gdf = gpd.read_file(filename, layer=layer_name).to_crs(epsg=2056)
 
 # Streamlit-Konfiguration
 st.set_page_config(page_title="Spiel", layout="wide")
 st.title("Kantonsumrisse erkennen Schweiz")
 
-
-
-    # Beispieloptionen
 namen_liste = []
 
 with fiona.open(filename, layer=layer_name) as src:
@@ -27,11 +24,13 @@ with fiona.open(filename, layer=layer_name) as src:
         name = feature["properties"].get("name")
         if name:
             namen_liste.append(name)
-
 # Duplikate entfernen und sortieren
 namen_liste = sorted(set(namen_liste))
 
 
+
+
+# Definition der State-Variablen
 if "remaining" not in st.session_state:
     st.session_state.remaining = namen_liste.copy()
 if "score" not in st.session_state:
@@ -41,10 +40,11 @@ if "current" not in st.session_state:
 if "feedback" not in st.session_state:
     st.session_state.feedback = ""
 
-# ------------------ Play-Button ------------------
+# Play-Button
+# Wenn alle Kantone gespielt wurden, zurücksetzen
 if st.button("▶️ Play"):
     if not st.session_state.remaining:
-        st.session_state.feedback = "Alle Kantone waren dran – Spiel wird zurückgesetzt!"
+        st.session_state.feedback = "Alle Kantone waren dran, Spiel wird zurückgesetzt!"
         st.session_state.remaining = namen_liste.copy()
         st.session_state.score = 0
         st.session_state.current = None
@@ -52,14 +52,10 @@ if st.button("▶️ Play"):
         st.session_state.current = random.choice(st.session_state.remaining)
         st.session_state.remaining.remove(st.session_state.current)
         st.session_state.feedback = ""
-
+# Spiel starten
 if st.session_state.current is None:
     st.info("Drücke auf **Play**, um zu starten!")
     st.stop()
-
-
-# Textfeld mit Filterfunktion
-#eingabe = st.text_input("Kantonsname:")
 
 # Liste der Optionen
 optionen = st.session_state.remaining
@@ -75,18 +71,16 @@ if submitted:
 
 kanton = st.session_state.current
 feature = gdf[gdf["name"] == kanton]
-geojson_str = feature.to_json()               # das ist ein JSON-String
+geojson_str = feature.to_json()
 geojson = json.loads(geojson_str)  
 
 
-kanton_name = st.session_state.current
-feature = gdf[gdf["name"] == kanton_name]
 
 # Karte ohne Hintergrund (tiles=None), zentriert auf Kanton
 centroid = feature.geometry.centroid.iloc[0]
 m = folium.Map(location=[centroid.y, centroid.x], zoom_start=9, tiles=None)
 folium.GeoJson(
-    feature,
+    data =geojson,
     style_function=lambda _: {
         "fillColor": "#3388ff",
         "color": "#000000",
@@ -98,7 +92,7 @@ folium.GeoJson(
 st.subheader("Welcher Kanton ist das?")
 st_data = st_folium(m, width=700, height=500)
 
-# ------------------ Eingabe und Auswertung ------------------
+
 guess = st.text_input("Deine Antwort:", key="guess_input")
 if st.button("✉️ Prüfen"):
     if not guess.strip():
@@ -112,7 +106,7 @@ if st.button("✉️ Prüfen"):
     st.session_state.current = None
 
 
-# ------------------ Punktestand ------------------
+
 st.sidebar.header("📊 Statistik")
 st.sidebar.write(f"Punktestand: **{st.session_state.score}**")
 st.sidebar.write(f"Verbleibende Kantone: **{len(st.session_state.remaining)}**")
