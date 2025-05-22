@@ -1,10 +1,16 @@
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
+# import fiona
+# import PyQt5
 
 # Streamlit-Konfiguration
 st.set_page_config(page_title="Spiel", layout="wide")
-st.title("🇨🇭 Karten-Spiel Schweiz - Klick dich zu Punkten!")
+st.title("Kantonsumrisse erkennen Schweiz")
+
+# Play Button
+if st.button("Play"):
+    st.write("geklickt!")
 
 # Punktestand initialisieren
 if "points" not in st.session_state:
