@@ -6,6 +6,7 @@ import fiona
 import random
 import json
 import matplotlib
+import matplotlib.pyplot as plt
 
 
 filename = "geodata/swissBOUNDARIES3D_1_5_LV95_LN02.gpkg"
@@ -80,7 +81,11 @@ if st.session_state.current:
     zufaellig = gdf[gdf["name"] == st.session_state.current].iloc[0]
     Koordinaten = zufaellig.geometry
     gdf = gpd.GeoDataFrame(geometry=[Koordinaten])
-    gdf.plot(color='lightblue', edgecolor='black')
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    gdf.plot(ax=ax, color='lightblue', edgecolor='black')
+    ax.axis('off')
+    st.pyplot(fig)
 
 
 
