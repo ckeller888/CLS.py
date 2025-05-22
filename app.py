@@ -11,6 +11,10 @@ filename = "geodata/swissBOUNDARIES3D_1_5_LV95_LN02.gpkg"
 layer_name = "tlm_kantonsgebiet"
 gdf = gpd.read_file(filename, layer=layer_name).to_crs(epsg=2056)
 
+layer_name_Land = "tlm_landesgebiet"
+Land = gpd.read_file(filename, layer=layer_name_Land).to_crs(epsg=2056)
+Auswahl= Land.query("name == 'Schweiz'").iloc[0]
+
 # Namen extrahieren
 namen_liste = []
 with fiona.open(filename, layer=layer_name) as src:
@@ -61,12 +65,12 @@ if st.session_state.current:
     # Kanton anzeigen
     zufaellig = gdf[gdf["name"] == st.session_state.current].iloc[0]
     Koordinaten = zufaellig.geometry
-    gdf_plot = gpd.GeoDataFrame(geometry=[Koordinaten])
+    Kanton_plot = gpd.GeoDataFrame(geometry=[Koordinaten])
     col1, col2, col3 = st.columns([1, 4, 1])  # Zentrierung
 
     with col2:
         fig, ax = plt.subplots(figsize=(4, 4), dpi=100)  # 4 Zoll * 100 DPI = 400 px
-        gdf_plot.plot(ax=ax, color='lightblue', edgecolor='black')
+        Kanton_plot.plot(ax=ax, color='lightblue', edgecolor='black')
         ax.axis('off')
         st.pyplot(fig)
 
@@ -76,6 +80,14 @@ if st.session_state.current:
         prüfen = st.form_submit_button("✅ Bestätigen")
 
     if prüfen:
+        # Kantone in Schweizer Karte anzeigen
+        Koordinaten = Auswahl["geometry"]
+        Schweiz = gpd.GeoDataFrame(geometry=[Koordinaten])
+        ax = Schweiz.plot(color='white', edgecolor='black')
+        Kanton_plot.plot(ax=ax, color='orange', edgecolor='red', alpha=0.7)
+        fig2 = ax.get_figure()
+        st.pyplot(fig2)
+
         if auswahl == st.session_state.current:
             st.session_state.score += 1
             st.session_state.feedback = f"✅ Richtig! Das war **{st.session_state.current}**."
