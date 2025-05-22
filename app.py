@@ -54,7 +54,6 @@ if st.button(start_button_label):
     st.session_state.remaining.remove(st.session_state.current)
     
 
-start_button_label = "🔄 Neu starten"    
 
 if not st.session_state.spiel_gestartet:
     st.info("Drücke **Spiel starten**, um zu beginnen.")
