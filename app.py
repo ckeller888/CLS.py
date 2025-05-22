@@ -35,7 +35,7 @@ namen_liste = sorted(set(namen_liste))
 eingabe = st.text_input("Kantonsname:")
 
 if eingabe:
-    vorschlaege = [n for n in namen_liste if eingabe.lower() in n.lower()]
+    vorschlaege = [n for n in namen_liste if n.lower().startswith(eingabe.lower())]
     if vorschlaege:
         auswahl = st.selectbox("Vorschläge:", vorschlaege)
         st.write(f"Du hast ausgewählt: {auswahl}")
