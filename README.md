@@ -1,5 +1,7 @@
 # Spiel
 
+Die Spielregeln befinden sich auf der [Github Pages](https://ckeller888.github.io/CLS.py/)
+
 ## streamlit installieren
 ``` shell
 # Erstelle ein neues Conda Environment und füge die Python Packges requirements.txt hinzu
