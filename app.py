@@ -30,9 +30,18 @@ for key, default in {
     "spiel_gestartet": False,
     "antwort_gegeben": False,
     "auswahl": None,
+    "richtig_gewählt": [],
+    "falsch_gewählt": [],
 }.items():
     if key not in st.session_state:
         st.session_state[key] = default
+
+# Sidebar – Statistik
+st.sidebar.header("📊 Statistik")
+st.sidebar.write(f"Punktestand: **{st.session_state.score}**")
+st.sidebar.write(f"Verbleibende Kantone: **{len(st.session_state.remaining)}**")
+st.sidebar.write(f"Richtig beantwortet: **{len(st.session_state.richtig_gewählt)}**")
+st.sidebar.write(f"Falsch beantwortet: **{len(st.session_state.falsch_gewählt)}**")
 
 # Spiel starten oder neu starten
 start_label = "🔄 Neu starten" if st.session_state.spiel_gestartet else "▶️ Spiel starten"
@@ -44,12 +53,15 @@ if st.button(start_label):
     st.session_state.antwort_gegeben = False
     st.session_state.current = random.choice(st.session_state.remaining)
     st.session_state.remaining.remove(st.session_state.current)
+    st.session_state.auswahl = None
+    st.session_state.richtig_gewählt = []
+    st.session_state.falsch_gewählt = []
 
 if not st.session_state.spiel_gestartet:
     st.info("Drücke **Spiel starten**, um zu beginnen.")
     st.stop()
 
-# Wenn noch keine Antwort gegeben wurde, zeige Kanton und Formular
+# Wenn noch keine Antwort gegeben wurde: Kanton zeigen & Formular
 if not st.session_state.antwort_gegeben and st.session_state.current:
     kanton_geom = gdf[gdf["name"] == st.session_state.current].geometry.iloc[0]
     bounds = kanton_geom.bounds
@@ -81,19 +93,24 @@ if not st.session_state.antwort_gegeben and st.session_state.current:
             st.session_state.score += 1
             st.session_state.feedback = f"✅ Richtig! Das war **{st.session_state.current}**."
             st.session_state.feedback_color = "success"
+            st.session_state.richtig_gewählt.append(st.session_state.current)
         else:
             st.session_state.feedback = f"❌ Falsch! Das war **{st.session_state.current}**."
             st.session_state.feedback_color = "error"
+            st.session_state.falsch_gewählt.append(st.session_state.current)
 
-# Wenn Antwort gegeben wurde: zeige Schweizkarte mit farbigen Flächen
+# Nach Antwort: Schweizkarte mit Verlauf zeigen
 if st.session_state.antwort_gegeben:
     fig2, ax2 = plt.subplots(figsize=(6, 6), dpi=100)
     gpd.GeoDataFrame(geometry=[schweiz_geom]).plot(ax=ax2, color='white', edgecolor='black')
 
-    if st.session_state.auswahl and st.session_state.auswahl != st.session_state.current:
-        gdf[gdf["name"] == st.session_state.auswahl].plot(ax=ax2, color='red', edgecolor='black', alpha=0.5)
+    # Falsche Kantone rot
+    if st.session_state.falsch_gewählt:
+        gdf[gdf["name"].isin(st.session_state.falsch_gewählt)].plot(ax=ax2, color='red', edgecolor='black', alpha=0.5)
 
-    gdf[gdf["name"] == st.session_state.current].plot(ax=ax2, color='green', edgecolor='black', alpha=0.7)
+    # Richtige Kantone grün
+    if st.session_state.richtig_gewählt:
+        gdf[gdf["name"].isin(st.session_state.richtig_gewählt)].plot(ax=ax2, color='green', edgecolor='black', alpha=0.6)
 
     ax2.axis('off')
     st.pyplot(fig2)
