@@ -6,3 +6,4 @@ fiona
 numpy
 matplotlib
 geoplot
+shapely
