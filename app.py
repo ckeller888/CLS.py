@@ -5,6 +5,7 @@ import geopandas as gpd
 import fiona
 import random
 import json
+import matplotlib
 
 
 filename = "geodata/swissBOUNDARIES3D_1_5_LV95_LN02.gpkg"
@@ -75,9 +76,11 @@ if submitted:
 # zufaellig = gdf.sample(n=1).iloc[0]
 
 # Kantonsumriss darstellen
-Koordinaten =  st.session_state.current["geometry"]
-gdf = gpd.GeoDataFrame(geometry=[Koordinaten])
-gdf.plot(color='lightblue', edgecolor='black')
+if st.session_state.current:
+    zufaellig = gdf[gdf["name"] == st.session_state.current].iloc[0]
+    Koordinaten = zufaellig.geometry
+    gdf = gpd.GeoDataFrame(geometry=[Koordinaten])
+    gdf.plot(color='lightblue', edgecolor='black')
 
 
 
