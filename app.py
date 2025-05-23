@@ -15,7 +15,7 @@ if "spiel" not in st.session_state:
 # Titel und Modus-Auswahl nur anzeigen, wenn kein Spiel läuft
 
 if st.session_state.spiel is None:
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1.18, 2, 1])
     with col2:
         st.title("Kantonsumrisse der Schweiz erkennen")
         st.write("Wähle einen Spielmodus:")
@@ -27,7 +27,7 @@ if st.session_state.spiel is None:
         if st.button("Spiel mit Kantonswappen"):
             st.session_state.spiel = "flaggen"
             st.rerun()
-
+        st.image("geodata/Schweiz.png", width=720)
 # Spiel starten und Zurück-Button nur anzeigen, wenn ein Spiel läuft
 else:
     if st.session_state.spiel == "flaggen":
@@ -54,6 +54,3 @@ else:
             if key in st.session_state:
                 del st.session_state[key]
         st.rerun()
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    st.image("geodata/Schweiz.png", width=720)
