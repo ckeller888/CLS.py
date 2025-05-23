@@ -56,10 +56,13 @@ if st.button(start_label):
     st.session_state.auswahl = None
     st.session_state.richtig_gewählt = []
     st.session_state.falsch_gewählt = []
+    st.rerun()
 
 if not st.session_state.spiel_gestartet:
     st.info("Drücke **Spiel starten**, um zu beginnen.")
     st.stop()
+
+
 
 # Wenn noch keine Antwort gegeben wurde: Kanton zeigen & Formular
 if not st.session_state.antwort_gegeben and st.session_state.current:
