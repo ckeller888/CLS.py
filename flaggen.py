@@ -4,6 +4,7 @@ import fiona
 import random
 import matplotlib.pyplot as plt
 import os
+from st_image_button import st_image_button
 
 
 # Funktion: Daten laden
@@ -78,18 +79,24 @@ def run():
             ax.axis("off")
             st.pyplot(fig)
 
-        st.markdown("### Welcher Kanton ist das? Klicke auf die passende Flagge:")
-        cols = st.columns(9)
+        st.markdown(
+            "##### Welcher Kanton ist das? Klicke auf das passende Kantonswappen:"
+        )
+        cols = st.columns(11)
         for i, kanton in enumerate(flaggen_liste):
-            col = cols[i % 9]
+            col = cols[i % 11]
             with col:
                 img_path = f"flags_png/{kanton}.png"
                 if os.path.exists(img_path):
-                    if st.button("", key=f"btn_{kanton}"):
+                    clicked = st_image_button(
+                        image=img_path,
+                        width=70,
+                        key=f"imgbtn_{kanton}",
+                    )
+                    if clicked:
                         st.session_state.auswahl = kanton
                         st.session_state.antwort_gegeben = True
                         st.rerun()
-                    st.image(img_path, width=80)
                 else:
                     st.warning(f"Bild fehlt: {kanton}")
 

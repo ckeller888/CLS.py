@@ -3,7 +3,6 @@ import geopandas as gpd
 import fiona
 import random
 import matplotlib.pyplot as plt
-from shapely.affinity import translate
 
 
 # Funktion: Daten laden

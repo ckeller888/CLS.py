@@ -6,4 +6,4 @@ fiona
 numpy
 matplotlib
 geoplot
-shapely
+streamlit-image-button
