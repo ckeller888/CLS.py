@@ -7,7 +7,7 @@ from shapely.affinity import translate
 
 # Streamlit-Konfiguration
 st.set_page_config(page_title="Kantons-Spiel", layout="wide")
-st.title("🇨🇭 Kantonsumrisse erkennen – Schweiz")
+st.title("Kantonsumrisse der Schweiz erkennen")
 
 # Daten laden
 filename = "geodata/swissBOUNDARIES3D_1_5_LV95_LN02.gpkg"
@@ -37,7 +37,7 @@ for key, default in {
         st.session_state[key] = default
 
 # Sidebar – Statistik
-st.sidebar.header("📊 Statistik")
+st.sidebar.header("Statistik")
 st.sidebar.write(f"Punktestand: **{st.session_state.score}**")
 st.sidebar.write(f"Verbleibende Kantone: **{len(st.session_state.remaining)}**")
 st.sidebar.write(f"Richtig beantwortet: **{len(st.session_state.richtig_gewählt)}**")
@@ -77,7 +77,7 @@ if not st.session_state.antwort_gegeben and st.session_state.current:
 
     with st.form("antwort_form"):
         auswahl = st.selectbox("Welcher Kanton ist das?", namen_liste)
-        prüfen = st.form_submit_button("✅ Bestätigen")
+        prüfen = st.form_submit_button("Bestätigen")
 
     if prüfen:
         st.session_state.antwort_gegeben = True
@@ -86,11 +86,11 @@ if not st.session_state.antwort_gegeben and st.session_state.current:
 
         if korrekt:
             st.session_state.score += 1
-            st.session_state.feedback = f"✅ Richtig! Das war **{st.session_state.current}**."
+            st.session_state.feedback = f"Richtig! Das war **{st.session_state.current}**."
             st.session_state.feedback_color = "success"
             st.session_state.richtig_gewählt.append(st.session_state.current)
         else:
-            st.session_state.feedback = f"❌ Falsch! Das war **{st.session_state.current}**."
+            st.session_state.feedback = f"Falsch! Das war **{st.session_state.current}**."
             st.session_state.feedback_color = "error"
             st.session_state.falsch_gewählt.append(st.session_state.current)
 
@@ -128,4 +128,4 @@ if st.session_state.antwort_gegeben:
         else:
             st.session_state.current = None
             st.session_state.spiel_gestartet = False
-            st.success("🎉 Alle Kantone waren dran. Spiel beendet!")
+            st.success("Alle Kantone waren dran. Spiel beendet!")
