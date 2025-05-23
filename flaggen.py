@@ -96,28 +96,34 @@ def run():
                     if clicked:
                         st.session_state.auswahl = kanton
                         st.session_state.antwort_gegeben = True
+
+                        korrekt = kanton == st.session_state.current
+                        if korrekt:
+                            st.session_state.score += 1
+                            st.session_state.feedback = (
+                                f"Richtig! Das war **{kanton}**."
+                            )
+                            st.session_state.feedback_color = "success"
+                            st.session_state.richtig_gewählt.append(kanton)
+                        else:
+                            st.session_state.feedback = (
+                                f"Falsch! Das war **{st.session_state.current}**."
+                            )
+                            st.session_state.feedback_color = "error"
+                            if (
+                                st.session_state.current
+                                not in st.session_state.falsch_gewählt
+                            ):
+                                st.session_state.falsch_gewählt.append(
+                                    st.session_state.current
+                                )
+
                         st.rerun()
                 else:
                     st.warning(f"Bild fehlt: {kanton}")
 
-    # Antwort prüfen
+    # Antwort-Feedback anzeigen (nur Darstellung)
     if st.session_state.antwort_gegeben and st.session_state.auswahl:
-        korrekt = st.session_state.auswahl == st.session_state.current
-        if korrekt:
-            st.session_state.score += 1
-            st.session_state.feedback = (
-                f"Richtig! Das war **{st.session_state.current}**."
-            )
-            st.session_state.feedback_color = "success"
-            st.session_state.richtig_gewählt.append(st.session_state.current)
-        else:
-            st.session_state.feedback = (
-                f"Falsch! Das war **{st.session_state.current}**."
-            )
-            st.session_state.feedback_color = "error"
-            if st.session_state.current not in st.session_state.falsch_gewählt:
-                st.session_state.falsch_gewählt.append(st.session_state.current)
-
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             fig2, ax2 = plt.subplots(figsize=(8, 8), dpi=600)
