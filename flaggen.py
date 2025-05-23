@@ -115,7 +115,8 @@ def run():
                 f"Falsch! Das war **{st.session_state.current}**."
             )
             st.session_state.feedback_color = "error"
-            st.session_state.falsch_gewählt.append(st.session_state.current)
+            if st.session_state.current not in st.session_state.falsch_gewählt:
+                st.session_state.falsch_gewählt.append(st.session_state.current)
 
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
@@ -149,5 +150,5 @@ def run():
             else:
                 st.session_state.current = None
                 st.session_state.spiel_gestartet = False
-                st.success("🎉 Alle Kantone waren dran. Spiel beendet!")
+                st.success("Alle Kantone waren dran. Spiel beendet!")
             st.rerun()
