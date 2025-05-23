@@ -94,8 +94,10 @@ if not st.session_state.antwort_gegeben and st.session_state.current:
             st.session_state.feedback_color = "error"
             st.session_state.falsch_gewählt.append(st.session_state.current)
 
+        st.rerun()    
+    
 # Nach Antwort: Schweizkarte mit Verlauf zeigen
-if st.session_state.antwort_gegeben:
+elif st.session_state.antwort_gegeben:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         fig2, ax2 = plt.subplots(figsize=(8, 8), dpi=600)
@@ -129,3 +131,5 @@ if st.session_state.antwort_gegeben:
             st.session_state.current = None
             st.session_state.spiel_gestartet = False
             st.success("Alle Kantone waren dran. Spiel beendet!")
+        
+        st.rerun()
