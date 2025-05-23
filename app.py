@@ -70,9 +70,9 @@ if not st.session_state.antwort_gegeben and st.session_state.current:
     bounds = kanton_geom.bounds
     gdf_kanton = gpd.GeoDataFrame(geometry=[kanton_geom])
 
-    col1, col2, col3 = st.columns([1, 0.8, 1])
+    col1, col2, col3 = st.columns([1, 0.6, 1])
     with col2:
-        fig, ax = plt.subplots(figsize=(4, 4), dpi=600)
+        fig, ax = plt.subplots(figsize=(4, 4), dpi=800)
         gdf_kanton.plot(ax=ax, color='lightblue', edgecolor='black')
         ax.axis('off')
         st.pyplot(fig)
