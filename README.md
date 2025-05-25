@@ -1,6 +1,6 @@
 # Web-App: Kantonsumrisse der Schweiz erkennen 
 
-Zum [Spiel](https://ckeller888-cls-py-app-9jeqq4.streamlit.app)
+Zum [Spiel](https://kantonsumrisse-ch-erkennen.streamlit.app)
 
 Der Spielaufbau und weitere Informationen zum Spiel sieht man auf der [GitHub Pages.](https://ckeller888.github.io/CLS.py/)
 
